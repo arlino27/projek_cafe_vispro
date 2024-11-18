@@ -26,10 +26,6 @@ namespace projek_cafe_vispro
             InitializeComponent();
         }
 
-        private void close_Click(object sender, EventArgs e)
-        {
-            Application.Exit();
-        }
 
         private void login_btn_Click(object sender, EventArgs e)
         {
@@ -43,6 +39,7 @@ namespace projek_cafe_vispro
                 perintah.ExecuteNonQuery();
                 adapter.Fill(ds);
                 koneksi.Close();
+
                 if (ds.Tables[0].Rows.Count > 0)
                 {
                     foreach (DataRow kolom in ds.Tables[0].Rows)
@@ -51,8 +48,8 @@ namespace projek_cafe_vispro
                         sandi = kolom["password"].ToString();
                         if (sandi == login_password.Text)
                         {
-                            beranda beranda = new beranda();
-                            beranda.Show();
+                            Dashboard dashboard = new Dashboard();
+                            dashboard.Show();
 
                             this.Hide();
                         }

@@ -136,7 +136,7 @@
             this.login_password.Location = new System.Drawing.Point(435, 235);
             this.login_password.Name = "login_password";
             this.login_password.PasswordChar = '*';
-            this.login_password.Size = new System.Drawing.Size(275, 26);
+            this.login_password.Size = new System.Drawing.Size(142, 26);
             this.login_password.TabIndex = 15;
             // 
             // label4
@@ -154,7 +154,7 @@
             this.login_username.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.login_username.Location = new System.Drawing.Point(434, 174);
             this.login_username.Name = "login_username";
-            this.login_username.Size = new System.Drawing.Size(275, 26);
+            this.login_username.Size = new System.Drawing.Size(143, 26);
             this.login_username.TabIndex = 13;
             this.login_username.TextChanged += new System.EventHandler(this.login_username_TextChanged);
             // 

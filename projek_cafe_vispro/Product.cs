@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using MySql.Data;
 using MySql.Data.MySqlClient;
 
 namespace projek_cafe_vispro
@@ -33,8 +34,8 @@ namespace projek_cafe_vispro
 
         private void button1_Click(object sender, EventArgs e)
         {
-            beranda beranda = new beranda();
-            beranda.Show();
+            Dashboard dashboard = new Dashboard();
+            dashboard.Show();
 
             this.Hide();
         }
@@ -57,7 +58,7 @@ namespace projek_cafe_vispro
 
         private void button4_Click(object sender, EventArgs e)
         {
-            Customer regForm = new Customer();
+            History regForm = new History();
             regForm.Show();
 
             this.Hide();
@@ -75,143 +76,37 @@ namespace projek_cafe_vispro
         {
             try
             {
-                // Pastikan semua field terisi
-                if (txtProductID.Text != "" && txtProductName.Text != "" && cmbType.SelectedItem != null && txtStock.Text != "" && txtPrice.Text != "")
+                if (!string.IsNullOrEmpty(txtProductName.Text) &&
+            cmbType.SelectedItem != null &&
+            !string.IsNullOrEmpty(txtStock.Text) &&
+            !string.IsNullOrEmpty(txtPrice.Text))
                 {
-                    // Cek apakah kode_barang sudah ada di database
-                    string checkQuery = string.Format("SELECT COUNT(*) FROM tb_barang WHERE kode_barang = '{0}'", txtProductID.Text);
+                    query = string.Format("INSERT INTO tb_barang (nama_barang, type, stok, harga) " +
+                                  "VALUES ('{0}', '{1}', '{2}', '{3}');",
+                                  txtProductName.Text,
+                                  cmbType.SelectedItem.ToString(),
+                                  txtStock.Text,
+                                  txtPrice.Text);
 
                     koneksi.Open();
-                    perintah = new MySqlCommand(checkQuery, koneksi);
-                    int count = Convert.ToInt32(perintah.ExecuteScalar()); // Mengecek jumlah data dengan kode_barang yang sama
+                    perintah = new MySqlCommand(query, koneksi);
+                    int res = perintah.ExecuteNonQuery();
                     koneksi.Close();
 
-                    if (count > 0)
+                    if (res == 1)
                     {
-                        // Jika sudah ada, tampilkan pesan error
-                        MessageBox.Show("Kode barang sudah ada! Silakan gunakan kode barang yang berbeda.");
+                        MessageBox.Show("Data telah ditambahkan sukses!");
+                        Product_Load(null, null); // Refresh data grid
+                        ResetForm(); // Reset input form
                     }
                     else
                     {
-                        // Jika kode_barang belum ada, lanjutkan untuk menambahkan data
-                        query = string.Format("INSERT INTO tb_barang (kode_barang, nama_barang, type, stok, harga) " +
-                                              "VALUES ('{0}', '{1}', '{2}', '{3}', '{4}');",
-                                              txtProductID.Text,
-                                              txtProductName.Text,
-                                              cmbType.SelectedItem.ToString(),
-                                              txtStock.Text,
-                                              txtPrice.Text);
-
-                        koneksi.Open();
-                        perintah = new MySqlCommand(query, koneksi);
-                        int res = perintah.ExecuteNonQuery();
-                        koneksi.Close();
-
-                        if (res == 1)
-                        {
-                            MessageBox.Show("Data telah ditambahkan Suksess ...");
-                            Product_Load(null, null); // Refresh data grid
-                            ResetForm();
-                        }
-                        else
-                        {
-                            MessageBox.Show("Gagal Menambahkan Data ...");
-                        }
+                        MessageBox.Show("Gagal menambahkan data.");
                     }
                 }
                 else
                 {
-                    MessageBox.Show("Data Tidak lengkap !!");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
-        }
-        private void ResetForm()
-        {
-            txtProductID.Clear();
-            txtProductName.Clear();
-            cmbType.SelectedIndex = -1;
-            txtStock.Clear();
-            txtPrice.Clear();
-        }
-
-        private void DataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-
-        }
-
-        private void adminAddProducts_updateBtn_Click(object sender, EventArgs e)
-        {
-            try
-            {
-                // Pastikan ProductID diisi
-                if (txtProductID.Text != "")
-                {
-                    // Buat bagian query untuk update dinamis
-                    List<string> updateColumns = new List<string>();
-
-                    // Update nama produk jika ada input nama produk baru
-                    if (!string.IsNullOrEmpty(txtProductName.Text))
-                    {
-                        updateColumns.Add($"nama_barang = '{txtProductName.Text}'");
-                    }
-
-                    // Update tipe produk jika ada input tipe produk baru
-                    if (cmbType.SelectedItem != null)
-                    {
-                        updateColumns.Add($"type = '{cmbType.SelectedItem.ToString()}'");
-                    }
-
-                    // Update harga jika ada input harga baru
-                    if (!string.IsNullOrEmpty(txtPrice.Text))
-                    {
-                        updateColumns.Add($"harga = '{txtPrice.Text}'");
-                    }
-
-                    // Update stok jika ada input stok baru
-                    if (!string.IsNullOrEmpty(txtStock.Text))
-                    {
-                        updateColumns.Add($"stok = '{txtStock.Text}'");
-                    }
-
-                    // Jika ada perubahan, lanjutkan dengan query UPDATE
-                    if (updateColumns.Count > 0)
-                    {
-                        // Gabungkan semua kolom yang diupdate menjadi satu string
-                        string setQuery = string.Join(", ", updateColumns);
-
-                        // Query UPDATE
-                        query = $"UPDATE tb_barang SET {setQuery} WHERE kode_barang = '{txtProductID.Text}'";
-
-                        // Eksekusi query UPDATE
-                        koneksi.Open();
-                        perintah = new MySqlCommand(query, koneksi);
-                        int res = perintah.ExecuteNonQuery();
-                        koneksi.Close();
-
-                        // Cek apakah berhasil
-                        if (res == 1)
-                        {
-                            MessageBox.Show("Data berhasil diperbarui!");
-                            Product_Load(null, null); // Refresh data grid
-                            ResetForm(); // Reset form input
-                        }
-                        else
-                        {
-                            MessageBox.Show("Gagal memperbarui data.");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Tidak ada data yang diubah!");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Product ID tidak ditemukan!");
+                    MessageBox.Show("Data tidak lengkap!");
                 }
             }
             catch (Exception ex)
@@ -220,19 +115,19 @@ namespace projek_cafe_vispro
             }
         }
 
+        
+
         private void adminAddProducts_clearBtn_Click(object sender, EventArgs e)
         {
             try
             {
-                // Mengosongkan semua field input
-                txtProductID.Clear();
+                // Mengosongkan semua field 
                 txtProductName.Clear();
                 cmbType.SelectedIndex = -1; // Set combo box ke keadaan default (tidak ada yang terpilih)
                 txtStock.Clear();
                 txtPrice.Clear();
 
                 // Menonaktifkan tombol Update dan Delete setelah clear
-                btnUpdate.Enabled = false;
                 btnDelete.Enabled = false;
 
                 // Menampilkan kembali data yang terbaru di DataGridView
@@ -244,44 +139,15 @@ namespace projek_cafe_vispro
             catch (Exception ex)
             {
                 MessageBox.Show("Terjadi kesalahan: " + ex.Message);
-            }
+            } 
         }
 
         private void adminAddProducts_deleteBtn_Click(object sender, EventArgs e)
         {
-            try
-            {
-                if (txtProductID.Text != "")
-                {
-                    if (MessageBox.Show("Anda Yakin Menghapus Data Ini ??", "Warning", MessageBoxButtons.YesNo) == DialogResult.Yes)
-                    {
-                        query = string.Format("Delete from tb_barang where kode_barang = '{0}'", txtProductID.Text);
-                        ds.Clear();
-                        koneksi.Open();
-                        perintah = new MySqlCommand(query, koneksi);
-                        adapter = new MySqlDataAdapter(perintah);
-                        int res = perintah.ExecuteNonQuery();
-                        koneksi.Close();
-                        if (res == 1)
-                        {
-                            MessageBox.Show("Delete Data Suksess ...");
-                        }
-                        else
-                        {
-                            MessageBox.Show("Gagal Delete data");
-                        }
-                    }
-                    Product_Load(null, null);
-                }
-                else
-                {
-                    MessageBox.Show("Data Yang Anda Pilih Tidak Ada !!");
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.ToString());
-            }
+            Delete_Barang delete_Barang = new Delete_Barang();
+            delete_Barang.Show();
+
+            this.Hide();
         }
 
         private void Product_Load(object sender, EventArgs e)
@@ -309,7 +175,6 @@ namespace projek_cafe_vispro
                 DataGridProduct.Columns[4].Width = 70;
                 DataGridProduct.Columns[4].HeaderText = "Harga";
 
-                btnUpdate.Enabled = true;
                 btnDelete.Enabled = true;
                 btnClear.Enabled = true;
                 btnAdd.Enabled = true;
@@ -318,6 +183,18 @@ namespace projek_cafe_vispro
             {
                 MessageBox.Show(ex.ToString());
             }
+        }
+
+        private void ResetForm()
+        {
+            txtProductName.Clear();
+            cmbType.SelectedIndex = -1;
+            txtStock.Clear();
+            txtPrice.Clear();
+        }
+        private void DataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+
         }
     }
 }
